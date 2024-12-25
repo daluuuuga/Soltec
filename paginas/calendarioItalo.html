@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html {
+            --body-color: #FFFCFF;
+            --header-color: #d36c6c;
+            --header-button: #92a1d1;
+            --color-weekdays: #247BA0;
+            --box-shadow: #CBD4C2;
+            --hover: #e8faed;
+            --current-day: #e8f4fa;
+            --event-color: #58bae4;
+            --modal-event: #e8f4fa;
+            --color-day: white;
+        }
+        
+        body {
+            display: flex;
+            margin-top: 50px;
+            justify-content: center;
+            background-color: var(--body-color);
+        }
+
+        .day.special-day {
+          background-color: #1d781d;
+          color: white;
+        }
+
+        .day.reserved {
+          background-color: #58028d;
+          color: white;
+        }
+
+        .day.special-day-aproved{
+          background-color: #e6c000;
+          color: white;
+        }
+
+        button {
+            width: 75px;
+            cursor: pointer;
+            box-shadow: 0px 0px 2px gray;
+            border: none;
+            outline: none;
+            padding: 5px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        #header {
+            padding: 10px;
+            color: var(--header-color);
+            font-size: 26px;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #header button {
+            background-color: var(--header-button);
+        }
+
+        #container {
+            width: 770px;
+        }
+
+        #weekdays {
+            width: 100%;
+            display: flex;
+            color: var(--color-weekdays);
+        }
+
+        #weekdays div {
+            width: 100%;
+            padding: 10px;
+        }
+
+        #calendar {
+            width: 100%;
+            margin: auto;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .day {
+            width: 100px;
+            padding: 10px;
+            height: 100px;
+            cursor: pointer;
+            box-sizing: border-box;
+            background-color: var(--color-day);
+            margin: 5px;
+            box-shadow: 0px 0px 3px var(--box-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 15%;
+        }
+
+        .day:hover {
+            background-color: var(--hover);
+        }
+
+        .event {
+            font-size: 10px;
+            padding: 3px;
+            background-color: var(--event-color);
+            color: white;
+            border-radius: 5px;
+            max-height: 55px;
+            overflow: hidden;
+        }
+
+        .padding {
+            cursor: default !important;
+            background-color: var(--body-color) !important;
+            box-shadow: none !important;
+        }
+
+        #newEventModal, #deleteEventModal {
+            display: none;
+            z-index: 20;
+            padding: 25px;
+            background-color: var(--modal-event);
+            box-shadow: 0px 0px 3px black;
+            border-radius: 5px;
+            width: 350px;
+            top: 100px;
+            left: calc(50% - 175px);
+            position: absolute;
+            font-family: sans-serif;
+        }
+
+        #eventTitleInput {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 25px;
+            border-radius: 3px;
+            outline: none;
+            border: none;
+            box-shadow: 0px 0px 3px gray;
+        }
+
+        #eventTitleInput.error {
+            border: 2px solid red;
+        }
+
+        #cancelButton, #deleteButton {
+            background-color: var(--header-color);
+        }
+
+        #saveButton, #closeButton {
+            background-color: var(--header-button);
+        }
+
+        #eventText {
+            font-size: 14px;
+        }
+
+        #modalBackDrop {
+            display: none;
+            top: 0px;
+            left: 0px;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            background-color: rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <div id="monthDisplay"></div>
+            <h1>Ítalo</h1>
+            <div>
+                <button id="backButton">Voltar</button>
+                <button id="nextButton">Próximo</button>
+            </div>
+        </div>
+
+        <div id="weekdays">
+            <div>Domingo</div>
+            <div>Segunda-feira</div>
+            <div>Terça-feira</div>
+            <div>Quarta-feira</div>
+            <div>Quinta-feira</div>
+            <div>Sexta-feira</div>
+            <div>Sábado</div>
+        </div>
+
+        <div id="calendar"></div>
+    </div>
+
+    <div id="newEventModal">
+        <h2>Novo Evento</h2>
+        <input id="eventTitleInput" placeholder="Título do Evento"/>
+        <button id="saveButton">Salvar</button>
+        <button id="cancelButton">Cancelar</button>
+    </div>
+
+    <div id="deleteEventModal">
+        <h2>Evento</h2>
+        <div id="eventText"></div><br>
+        <button id="deleteButton">Deletar</button>
+        <button id="closeButton">Fechar</button>
+    </div>
+
+    <div id="modalBackDrop"></div>
+
+    <script>
+var orders = {
+  "Para Checklist": [],
+  "Enviar Checklist": [],
+  "Para análise": [],
+  "Enviar Orçamento": [],
+  "Aguardando Aprovação": [],
+  "Orçamento Aprovado": [],
+  "Em andamento": [],
+  "Aguardando Peças": [],
+  "Não aprovado/Fechar": [],
+  "Checklist Final": [],
+  "Finalizada": [],
+  "Agendamento": []
+};
+
+function fetchOrders() {
+  fetch('http://localhost:3000/ordens')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erro ao obter os dados da API');
+      }
+      return response.json();
+    })
+    .then(data => {
+      Object.keys(orders).forEach(category => {
+        orders[category] = [];
+      });
+      data.forEach(order => {
+        if (orders[order.nome_situacao]) {
+          orders[order.nome_situacao].push(order);
+        }
+      });
+      load(); // Chame o load() aqui para garantir que os dados sejam carregados após a fetch
+    })
+    .catch(error => {
+      console.error(error.message);
+    });
+}
+
+fetchOrders();
+
+let nav = 0;
+let clicked = null;
+let events = localStorage.getItem('events') ? JSON.parse(localStorage.getItem('events')) : [];
+
+const newEvent = document.getElementById('newEventModal');
+const deleteEventModal = document.getElementById('deleteEventModal');
+const backDrop = document.getElementById('modalBackDrop');
+const eventTitleInput = document.getElementById('eventTitleInput');
+const calendar = document.getElementById('calendar');
+const weekdays = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+
+function openModal(date) {
+  clicked = date;
+  const eventDay = events.find((event) => event.date === clicked);
+
+  if (eventDay) {
+    document.getElementById('eventText').innerText = eventDay.title;
+    deleteEventModal.style.display = 'block';
+  } else {
+    newEvent.style.display = 'block';
+  }
+
+  backDrop.style.display = 'block';
+}
+
+function load() {
+  const date = new Date();
+
+  if (nav !== 0) {
+    date.setMonth(new Date().getMonth() + nav);
+  }
+
+  const day = date.getDate();
+  const month = date.getMonth();
+  const year = date.getFullYear();
+  const daysMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayMonth = new Date(year, month, 1);
+  const dateString = firstDayMonth.toLocaleDateString('pt-br', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  });
+  const paddingDays = weekdays.indexOf(dateString.split(', ')[0]);
+  document.getElementById('monthDisplay').innerText = `${date.toLocaleDateString('pt-br', { month: 'long' })}, ${year}`;
+  calendar.innerHTML = '';
+
+  for (let i = 1; i <= paddingDays + daysMonth; i++) {
+    const dayS = document.createElement('div');
+    dayS.classList.add('day');
+    const dayString = `${month + 1}/${i - paddingDays}/${year}`;
+    
+
+    if (i > paddingDays) {
+      const currentDate = new Date(year, month, i - paddingDays);
+      currentDate.setHours(0, 0, 0, 0);
+      dayS.innerHTML = i - paddingDays;
+
+      orders["Em andamento"].forEach(order => {
+        if (order.nome_tecnico === "Ítalo César") {
+          const regex = /^(0[1-9]|[12][0-9]|3[01])[/.-](0[1-9]|1[0-2])[/.-](\d{4})$/;
+
+          var observacoes = order.observacoes_internas.split(',');
+          observacoes.forEach(text => {
+            if (regex.test(text.trim())) {
+              const [dia, mes, ano] = text.trim().split('/');
+              const dataInicioEquipamento = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+              dataInicioEquipamento.setHours(0, 0, 0, 0);
+
+              if (currentDate.getTime() === dataInicioEquipamento.getTime()) {
+                dayS.classList.add('special-day');
+                dayS.innerHTML = `<div>${i - paddingDays}</div><div>OS#${order.codigo}</div><div>${order.nome_cliente.split(' ')[0]}</div>`;
+              }
+            }
+          });
+        }
+      });
+
+      orders["Agendamento"].forEach(order => {
+        if (order.nome_tecnico === "Ítalo") {
+          const regex = /^(0[1-9]|[12][0-9]|3[01])[/.-](0[1-9]|1[0-2])[/.-](\d{4})$/;
+
+          var observacoes = order.observacoes_internas.split(',');
+          observacoes.forEach(text => {
+            if (regex.test(text.trim())) {
+              const [dia, mes, ano] = text.trim().split('/');
+              const dataInicioEquipamento = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+              dataInicioEquipamento.setHours(0, 0, 0, 0);
+
+              if (currentDate.getTime() === dataInicioEquipamento.getTime()) {
+                dayS.classList.add('reserved');
+                dayS.innerHTML = `<div>${i - paddingDays}</div><div>OS#${order.codigo}</div><div>${order.nome_cliente.split(' ')[0]}</div>`;
+
+
+              }
+            }
+          });
+        }
+      });
+
+      orders["Orçamento Aprovado"].forEach(order => {
+        if (order.nome_tecnico === "Ítalo") {
+          const regex = /^(0[1-9]|[12][0-9]|3[01])[/.-](0[1-9]|1[0-2])[/.-](\d{4})$/;
+
+          var observacoes = order.observacoes_internas.split(',');
+          observacoes.forEach(text => {
+            if (regex.test(text.trim())) {
+              const [dia, mes, ano] = text.trim().split('/');
+              const dataInicioEquipamento = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+              dataInicioEquipamento.setHours(0, 0, 0, 0);
+
+              if (currentDate.getTime() === dataInicioEquipamento.getTime()) {
+                dayS.classList.add('special-day-aproved');
+                dayS.innerHTML = `<div>${i - paddingDays}</div><div>OS#${order.codigo}</div><div>${order.nome_cliente.split(' ')[0]}</div>`;
+
+
+              }
+            }
+          });
+        }
+      });
+
+      const eventForDay = events.find((event) => event.date === dayString);
+
+      if (eventForDay) {
+        const eventDiv = document.createElement('div');
+        eventDiv.classList.add('event');
+        eventDiv.innerText = eventForDay.title;
+        dayS.appendChild(eventDiv);
+      }
+
+      dayS.addEventListener('click', () => openModal(dayString));
+    } else {
+      dayS.classList.add('padding');
+    }
+
+    calendar.appendChild(dayS);
+  }
+}
+
+function closeModal() {
+  eventTitleInput.classList.remove('error');
+  newEvent.style.display = 'none';
+  deleteEventModal.style.display = 'none';
+  backDrop.style.display = 'none';
+  eventTitleInput.value = '';
+  clicked = null;
+  load();
+}
+
+function saveEvent() {
+  if (eventTitleInput.value) {
+    eventTitleInput.classList.remove('error');
+    events.push({
+      date: clicked,
+      title: eventTitleInput.value,
+    });
+
+    localStorage.setItem('events', JSON.stringify(events));
+    closeModal();
+  } else {
+    eventTitleInput.classList.add('error');
+  }
+}
+
+function deleteEvent() {
+  events = events.filter((event) => event.date !== clicked);
+  localStorage.setItem('events', JSON.stringify(events));
+  closeModal();
+}
+
+document.getElementById('nextButton').addEventListener('click', () => {
+  nav++;
+  load();
+});
+
+document.getElementById('backButton').addEventListener('click', () => {
+  nav--;
+  load();
+});
+
+document.getElementById('saveButton').addEventListener('click', saveEvent);
+document.getElementById('cancelButton').addEventListener('click', closeModal);
+document.getElementById('deleteButton').addEventListener('click', deleteEvent);
+document.getElementById('closeButton').addEventListener('click', closeModal);
+
+load();
+
+    </script>
+</body>
+</html>

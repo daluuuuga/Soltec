@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listar</title>
+  <style>
+    .status-aguardando { color: rgb(189, 76, 0); }
+    .status-aprovado { color: rgb(46, 146, 0); }
+    .status-analise { color: gray; }
+    .status-andamento { color: #a36a00; }
+    .status-esperando { color: #db05d0; }
+
+    .status-cyan { background-color: cyan; }
+    .status-green { background-color: green; }
+    .status-orange { background-color: orange; }
+    .status-red { background-color: #ffffff; }
+    
+    .blinking-div {
+      background-color: white;
+      animation: blink 1s infinite;
+    } 
+
+    @keyframes blink {
+        0%, 100% {
+            background-color: white;
+            color: black;
+        }
+        50% {
+            background-color: green;
+            color: white;
+        }
+    }
+    
+    table {
+      border-collapse: separate;
+      border-spacing: 0 0px; 
+    }
+    td {
+      padding: 10px;
+    }
+    .btn-outline-white:hover {
+      color: black;
+      background-color: rgb(6, 1, 97);
+      border-color: white;
+    }
+    .btn-outline-white {
+      color: white;
+      background-color: transparent;
+      border-color: white;
+    }
+    .border-darkblue {
+      border: 4px solid darkblue;
+    }
+    .border-pink {
+      border: 4px solid #db0505;
+    }
+
+    .icon-tiago {
+      color: darkblue;
+    }
+    .icon-heitor {
+      color: #0d940d;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      font-family: Arial, sans-serif;
+      border: 2px solid #000; /* Define a borda com largura, estilo sólido e cor preta */
+      padding: 10px; /* Adiciona um espaçamento interno para melhor aparência */
+      margin-top: 10px;
+
+    }
+  
+    .legend-item {
+      display:grid;
+      align-items: center;
+      gap: 8px;
+      margin-left: 30px;
+      margin-top: 30px;
+
+    }
+  
+    .color-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+  
+    .color-box.black {
+      background-color: black;
+      border: 1px solid #000;
+    }
+  
+    .color-box.gray {
+      background-color: gray;
+      border: 1px solid #808080;
+    }
+  
+    .color-box.red {
+      background-color: #fc5050;
+      border: 1px solid #fc5050;
+    }
+  
+    .color-box.yellow {
+      background-color: yellow;
+      border: 1px solid #cccc00;
+    }
+  
+    .color-box.green {
+      background-color: lightgreen;
+      border: 1px solid #90ee90;
+    }
+  
+    .color-box.cyan {
+      background-color: cyan;
+      border: 1px solid #00ffff;
+    }
+  
+    .color-box.pink {
+      background-color: #FF69B4;
+      border: 1px solid #FF69B4;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><img src="./img/SOLTEC.png" alt="" height="60px"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+          <li class="nav-item">
+            <a class="nav-link" href="/calendario/tiago"><strong class="text-white">Calendário Tiago</strong></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/calendario/heitor"><strong class="text-white">Calendário Heitor</strong></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/calendario/italo"><strong class="text-white">Calendário Ítalo</strong></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/termos"><strong class="text-white">Documentos</strong></a>
+          </li>
+        </ul>
+        
+      </div>
+    </div>
+  </nav>
+  <div class="legend">
+      <div class="legend-item">
+      <span class="color-box black"></span>
+      <span>Saída atrasada (menos de 0 dias)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box gray"></span>
+      <span>Saída hoje (0 dias)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box red"></span>
+      <span>Saída amanhã (1 dia)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box yellow"></span>
+      <span>Saída em breve (2 dias)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box green"></span>
+      <span>Saída próxima (3 dias)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box cyan"></span>
+      <span>Saída próxima (4 dias)</span>
+    </div>
+    <div class="legend-item">
+      <span class="color-box pink"></span>
+      <span>Saída em até 8 dias (5 dias ou mais)</span>
+    </div>
+  </div>
+  <table class="table caption-top"> 
+    <h2 style="display: flex; justify-content: center; margin-top:30px; margin-bottom: 20px;">Lista de OS's</h2>
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Agendamento</th>
+        <th scope="col">Para Checklist</th>
+        <th scope="col">Enviar Checklist</th>
+        <th scope="col">Para Análise</th>
+        <th scope="col">Enviar Orçamento</th>
+        <th scope="col">Aguardando Aprovação</th>
+        <th scope="col">Orçamento Aprovado</th>
+        <th scope="col">Em andamento</th>
+        <th scope="col">Aguardando Peças</th>
+        <th scope="col">Não aprovado/Fechar</th>
+        <th scope="col">Checklist Final</th>
+        <th scope="col">Finalizada</th>
+      </tr>
+    </thead>
+    <tbody id="ordersTableBody">
+    </tbody>
+  </table>
+  <script>
+    var orders = {
+      "Agendamento": [],
+      "Para Checklist": [],
+      "Enviar Checklist": [],
+      "Para análise": [],
+      "Enviar Orçamento": [],
+      "Aguardando Aprovação": [],
+      "Orçamento Aprovado": [],
+      "Em andamento": [],
+      "Aguardando Peças": [],
+      "Não aprovado/Fechar": [],
+      "Checklist Final": [],
+      "Finalizada": [],
+    };
+
+    function fetchOrders() {
+      fetch('http://localhost:3000/ordens')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erro ao obter os dados da API');
+          }
+          return response.json();
+        })
+        .then(data => {
+          Object.keys(orders).forEach(category => {
+            orders[category] = [];
+          });
+          console.log(data);
+          data.forEach(order => {
+            switch (order.nome_situacao) {
+              case "Para Checklist":
+                orders["Para Checklist"].push(order);
+                break;
+              case "Enviar Checklist":
+                orders["Enviar Checklist"].push(order);
+                break;
+              case "Para análise":
+                orders["Para análise"].push(order);
+                break;
+              case "Enviar Orçamento":
+                orders["Enviar Orçamento"].push(order);
+                break;
+              case "Aguardando Aprovação":
+                orders["Aguardando Aprovação"].push(order);
+                break;
+              case "Orçamento Aprovado":
+                orders["Orçamento Aprovado"].push(order);
+                break;
+              case "Em andamento":
+                orders["Em andamento"].push(order);
+                break;
+              case "Aguardando Peças":
+                orders["Aguardando Peças"].push(order);
+                break;
+              case "Não aprovado/Fechar":
+                orders["Não aprovado/Fechar"].push(order);
+                break;
+              case "Checklist Final":
+                orders["Checklist Final"].push(order);
+                break;
+              case "Finalizada":
+                orders["Finalizada"].push(order);
+                break;
+                case "Agendamento":
+                orders["Agendamento"].push(order);
+                break;
+              default:
+                break;
+            }
+          });
+          sortOrdersByDate(orders["Para Checklist"], 'data_saida');
+          sortOrdersByDate(orders["Orçamento Aprovado"], 'data_saida');
+          sortOrdersByDate(orders["Em andamento"], 'data_saida');
+          sortOrdersByDateFinished(orders["Finalizada"], 'data_saida');
+
+          fillTable();
+        })
+        .catch(error => {
+          console.error(error.message);
+        });
+    }
+    function sortOrdersByDateFinished(orders, key) {
+      return orders.sort((a, b) => new Date(b[key]) - new Date(a[key]));
+    }
+    function sortOrdersByDate(orderArray, dateField) {
+      orderArray.sort((a, b) => {
+        let dateA = new Date(a[dateField]);
+        let dateB = new Date(b[dateField]);
+        return dateA - dateB;
+      });
+    }
+
+    function fillTable() {
+      var tbody = document.getElementById('ordersTableBody');
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
+
+      var maxOrders = Math.max(...Object.values(orders).map(category => category.length));
+
+      for (var i = 0; i < maxOrders; i++) {
+        var row = document.createElement('tr');
+        var th = document.createElement('th');
+        th.setAttribute('scope', 'row');
+        th.textContent = i + 1;
+        row.appendChild(th);
+
+        Object.keys(orders).forEach(category => {
+          var td = document.createElement('td');
+          if (orders[category][i]) {
+            var statusClass = getStatusClass(orders[category][i].nome_situacao);
+            var tecnicoIcon = getTecnicoIcon(orders[category][i].nome_tecnico, td);
+            td.innerHTML =  '<strong>' + orders[category][i].codigo + '</strong>' + ', ' + orders[category][i].nome_cliente.split(' ')[0] + ', '+
+                            '<strong>' + orders[category][i].data_entrada.split('-')[2] +'/'+ orders[category][i].data_entrada.split('-')[1] + '</strong>' + '<br> '+ 
+                            orders[category][i].nome_equipamento +' ' +orders[category][i].marca_equipamento + '<br>' + 
+                            tecnicoIcon + ' ' + orders[category][i].nome_tecnico.split(' ')[0] + ' - ' +(orders[category][i].data_saida != "Não possui data de saída" ?  (orders[category][i].data_saida.split('-')[2] + '/' + orders[category][i].data_saida.split('-')[1]) : '') + '<br>';
+
+            if (statusClass === "status-azul" || statusClass === "status-laranja"|| statusClass === "status-endcheck") {
+                modifyBack(td, orders[category][i].data_saida, orders[category][i].nome_tecnico, orders[category][i]);
+            } else if (statusClass === 'status-aguardando' || statusClass === "status-analise") {
+                modifyBackCheklistAndAnalisis(td, orders[category][i].data_entrada);
+            } else if (statusClass === 'status-verde') {
+              modifyBackFinished(td,orders[category][i]);
+            }else if (statusClass === 'status-purple') {
+    var observacoes = orders[category][i].observacoes_internas.split(',');
+    const regex = /^(0[1-9]|[12][0-9]|3[01])[/.-](0[1-9]|1[0-2])[/.-](\d{4})$/;
+
+    // Encontra a primeira data válida nas observações
+    let dataInicio = null;
+    for (let observacao of observacoes) {
+        if (regex.test(observacao.trim())) {
+            dataInicio = observacao.trim().split('/');
+            break;
+        }
+    }
+
+    if (dataInicio) {
+        var anoInicio = parseInt(dataInicio[2]);
+        var mesInicio = parseInt(dataInicio[1]) - 1;
+        var diaInicio = parseInt(dataInicio[0]);
+
+        var hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        var dataInicioEquipamento = new Date(anoInicio, mesInicio, diaInicio);
+        dataInicioEquipamento.setHours(0, 0, 0, 0);
+
+        if (hoje.getTime() === dataInicioEquipamento.getTime()) {
+            td.style.backgroundColor = '#58028d';
+            td.style.color = 'white';
+        }
+    }
+}
+          } else {
+            td.textContent = '-';
+          }
+          row.appendChild(td);
+        });
+
+        tbody.appendChild(row);
+      }  
+    }
+
+    function getStatusClass(status) {
+      switch (status) {
+        case "Para Checklist":
+          return "status-aguardando";
+        case "Enviar Checklist":
+          return "status-aguardando";
+        case "Para análise":
+          return "status-analise";
+        case "Enviar Orçamento":
+          return "status-aguardando";
+        case "Aguardando Aprovação":
+          return "status-marrom";
+        case "Orçamento Aprovado":
+          return "status-azul";
+        case "Em andamento":
+          return "status-azul";
+        case "Aguardando Peças":
+          return "status-rosa";
+        case "Não aprovado/Fechar":
+          return "status-laranja";
+        case "Checklist Final":
+          return "status-endcheck";
+        case "Finalizada":
+          return "status-verde";
+        case "Agendamento":
+        return "status-purple";
+
+        default:
+          return "";
+      }
+    }
+
+    function getTecnicoIcon(tecnico, td) {
+      if (tecnico == 'Tiago Wanderley') {
+          td.style.borderBottom = '10px solid darkblue';
+        } else if (tecnico == 'Heitor Marcelino') {
+          td.style.borderBottom = '10px solid #1d781d';
+        }else if(tecnico == 'Ítalo'){
+          td.style.borderBottom = '10px solid #a36a00';
+
+        }
+
+      if (tecnico == 'Tiago Wanderley') {
+        
+        return '<span class="icon-tiago">&#9733;</span>'; 
+      } else if (tecnico == 'Heitor Marcelino') {
+        return '<span class="icon-heitor"><strong>&#9670;</strong></span>'; 
+      } else {
+        return '';
+      }
+    }
+    function modifyBackFinished(td,order){
+      console.log(order)
+        dataSaida = order.data_saida;
+        var dataSaidaSplit = dataSaida.split('-');
+        var anoSaida = parseInt(dataSaidaSplit[0]);
+        var mesSaida = parseInt(dataSaidaSplit[1]) - 1; 
+        var diaSaida = parseInt(dataSaidaSplit[2]);
+        var hoje = new Date();
+        var dataSaidaEquipamento = new Date(anoSaida, mesSaida, diaSaida);
+        hoje.setHours(0,0,0,0);
+        dataSaidaEquipamento.setHours(0,0,0,0);
+        if((dataSaidaEquipamento.getDate() + 1) === hoje.getDate() || dataSaidaEquipamento.getDate() === hoje.getDate()){
+          td.classList.add('blinking-div')
+        }else if(dataSaidaEquipamento > hoje){
+          td.classList.add('blinking-div')
+        }
+        else{
+          td.style.backgroundColor = 'black'
+          td.style.color = 'white'
+        }
+
+    }
+    function modifyBackCheklistAndAnalisis(td, dataEntrada) {
+      if (dataEntrada === 'Não possui data de entrada') {
+        td.style.backgroundColor = 'white';
+      } else {
+        var hoje = new Date();
+        var dataEntradaSplit = dataEntrada.split('-');
+        var anoEntrada = parseInt(dataEntradaSplit[0]);
+        var mesEntrada = parseInt(dataEntradaSplit[1]) - 1; 
+        var diaEntrada = parseInt(dataEntradaSplit[2]);
+
+        var dataEntradaEquipamento = new Date(anoEntrada, mesEntrada, diaEntrada);
+        dataEntradaEquipamento.setHours(0, 0, 0, 0); 
+
+        var diferencaMillis = hoje.getTime() - dataEntradaEquipamento.getTime();
+        var diferencaDias = Math.floor(diferencaMillis / (1000 * 60 * 60 * 24));
+        if (diferencaDias == 0) {
+          td.style.backgroundColor = 'lightgreen';
+          
+        } else if (diferencaDias == 1) {
+          td.style.backgroundColor = 'yellow';
+
+        } else if (diferencaDias == 2) {
+          td.style.backgroundColor = '#fc5050';
+        }else if(diferencaDias == 3){
+          td.style.backgroundColor = 'gray';
+
+        }else if(diferencaDias > 3){
+          td.style.backgroundColor = 'black';
+          td.style.color = 'white';
+        }
+      }
+    }
+
+    function modifyBack(td, dataSaida, nome_tecnico, order) {
+     
+
+        
+        const nameEquipment = order.nome_equipamento;
+
+        
+      if (dataSaida !== "Não possui data de saída") {
+        var dataSaidaSplit = dataSaida.split('-');
+        var anoSaida = parseInt(dataSaidaSplit[0]);
+        var mesSaida = parseInt(dataSaidaSplit[1]) - 1; 
+        var diaSaida = parseInt(dataSaidaSplit[2]);
+        const regex = /^(0[1-9]|[12][0-9]|3[01])[/.-](0[1-9]|1[0-2])[/.-](\d{4})$/;
+
+        var observacoes = order.observacoes_internas.split(',');
+        console.log(observacoes)
+        let dataInicio = observacoes.map((text) => {
+        if(regex.test(text)){
+          return text.split('/');
+        }
+        return null;  
+    });
+
+    if(dataInicio == null || dataInicio.includes("")  || dataInicio == ''){
+      console.log('o equipamento de os: ' + order.codigo + ' não possui observação interna válida')
+    }
+
+   
+        
+        var anoInicio = parseInt(dataInicio[2]);
+        var mesInicio = parseInt(dataInicio[1]) - 1; 
+        var diaInicio = parseInt(dataInicio[0]);
+
+
+        var hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); 
+
+        var dataSaidaEquipamento = new Date(anoSaida, mesSaida, diaSaida);
+        var dataInicioEquipamento = new Date(anoInicio, mesInicio, diaInicio);
+        dataSaidaEquipamento.setHours(0, 0, 0, 0); 
+        dataInicioEquipamento.setHours(0, 0, 0, 0); 
+
+        let hasDesobstrucaoServico = false;
+      if (order.servicos) {
+        for (let i = 0; i < order.servicos.length; i++) {
+          if (order.servicos[i].servico.nome_servico.toUpperCase() === "DESOBSTRUÇÃO DE CABEÇA DA  IMPRESSÃO") {
+            hasDesobstrucaoServico = true;
+            break;
+        }
+      }
+    }
+        let cor = 0;
+        // - -1 = preto
+        // -0=cinza
+        // -1=vermelho
+        // -2=amarelo
+        // -3=verde
+        // -4=azul
+        // -5=rosa
+        var diferencaMillis = dataSaidaEquipamento.getTime() - hoje.getTime();
+        var diferencaDias = Math.floor(diferencaMillis / (1000 * 60 * 60 * 24));
+       
+
+        
+        //IMPRESSORAS------------------------------------------------------------------------------
+     
+        if(order.nome_equipamento.toUpperCase() === "IMPRESSORA"){
+            //OBSTRUÇÃO DE CARCAÇA-------------------------------------------------------------------
+            if(hasDesobstrucaoServico){
+              if(diferencaDias > 4 && diferencaDias < 13) {
+                cor = 5;
+              }else if(diferencaDias == 0){
+                cor = 0;
+              }else if(diferencaDias < 0){
+                cor = -1
+              }else if(hoje.getDate() === (dataInicioEquipamento.getDate()-1)){
+                cor = 4
+              }else if(hoje.getDate() === dataInicioEquipamento.getDate()){
+                cor = 3;
+              }else{
+                  for(let i = 1; i <= diferencaDias; i++){
+                      if((dataSaidaEquipamento.getDay() - i) != 0 || dataSaidaEquipamento.getDay() - i!= 6){
+                        cor++;
+                      } 
+                  }
+                  if(cor === 0){
+                        cor = 2;
+                  }
+              }
+            //IMPRESSORA SEM OBSTRUÇÃO-------------------------------------------------------------
+            }else{
+              
+              if (diferencaDias < 0) {
+                cor = -1
+          
+              }else if(diferencaDias > 4 && diferencaDias < 8 ){ 
+                td.style.backgroundColor = '#FF69B4';
+              }else if(diferencaDias == 0){
+                  cor = 0;
+                }else if(hoje.getDate() === (dataInicioEquipamento.getDate()-1)){
+                  cor = 4
+                }else if(hoje.getDate() === dataInicioEquipamento.getDate()){
+                  cor = 3;
+                }else{
+                    for(let i = 1; i <= diferencaDias; i++){
+                        if((dataSaidaEquipamento.getDay() - i) != 0 || dataSaidaEquipamento.getDay() - i!= 6){
+                          cor++;
+                        } 
+                    }
+                    if(cor === 0){
+                          cor = 2;
+                    }
+                }
+            }
+          }
+        
+
+         console.log(hoje.getDate())
+      //PC ou NOTEBOOK------------------------------------------------------------------------------
+        if (diferencaDias < 0) {
+          cor = -1
+        }
+        else if(diferencaDias == 0){
+          cor = 0;
+        }else if(hoje.getDate() === (dataInicioEquipamento.getDate()-1)){
+          cor = 4;
+        }else if(hoje.getDate() === dataInicioEquipamento.getDate()){
+          cor=3;
+          console
+        }else{
+         
+
+          for(let i = 1; i <= diferencaDias; i++){
+            let dataAux = new Date(dataSaidaEquipamento);
+            dataAux.setDate(dataSaidaEquipamento.getDate() - i);
+            if(i === diferencaDias && (dataAux.getDay() === 6 || dataAux.getDay() === 0)){
+              cor++;
+            }
+            if(dataAux.getDay() !== 6 && dataAux.getDay() !== 0){
+              cor++;
+              if(order.codigo === '1494'){
+                console.log('dia da semana '+dataAux.getDay());
+          
+              }
+              
+           
+           
+          
+        }   else{
+                console.log('nao incrementou');
+                
+            }
+
+          }
+          if(cor === 0){
+            cor = 2; 
+            
+          }
+        }
+
+        if( cor == -1){
+          td.style.backgroundColor = 'black';
+          td.style.color = 'white';        
+        }else if( cor == 0 ){
+          td.style.backgroundColor = 'gray';
+        }else if( cor == 1 ){
+          td.style.backgroundColor = '#fc5050'
+        }else if( cor == 2){
+          td.style.backgroundColor = 'yellow';
+        }else if( cor == 3 ){
+          td.style.backgroundColor = 'lightgreen'; 
+        }else if( cor == 4 ){
+          td.style.backgroundColor = 'cyan';
+        }
+
+    }}
+
+
+    
+
+    setInterval(fetchOrders, 1 * 60 * 1000); 
+    fetchOrders(); 
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Termo de Responsabilidade</title>
+</head>
+<body>
+   <form id="osForm">
+    <input type="number" name="idOfOs" placeholder="Digite o código da OS" required>
+    <button type="submit">Enviar</button>
+   </form>
+
+   <script>
+     const form = document.getElementById('osForm');
+     form.addEventListener('submit', function(event) {
+       event.preventDefault();  // Evita o comportamento padrão do formulário
+
+       const formData = new FormData(form);
+       const osId = formData.get('idOfOs');  // Obtém o valor do código da OS
+
+       // Envia a requisição para a rota /gerar-termo com o ID da OS
+       fetch(`/gerar-termo/entrouLiquido?osId=${osId}`)
+         .then(response => {
+           if (response.ok) {
+             return response.blob(); // Recebe o PDF
+           } else {
+             throw new Error('Erro ao gerar o termo de Entrada de Liquido.');
+           }
+         })
+         .then(blob => {
+           // Cria um link temporário para baixar o PDF
+           const url = window.URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = 'termo_responsabilidade_entrou_liquido_OS#' + osId +'.pdf';
+           document.body.appendChild(a);
+           a.click();
+           a.remove();
+         })
+         .catch(error => {
+           console.error('Erro:', error);
+         });
+     });
+   </script>
+</body>
+</html>
